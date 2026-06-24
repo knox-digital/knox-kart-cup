@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Family Mario Kart Rankings</title>
+<style>
+:root{
+  --red:#ff3b30;--yellow:#ffd60a;--blue:#00aaff;--green:#35c759;
+  --purple:#af52de;--dark:#172033;--card:#ffffff;--soft:#f7f9ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(135deg,#ffec70,#6ee7ff,#ff9ff3);
+  color:var(--dark);
+}
+header{
+  padding:28px 16px;text-align:center;color:white;
+  background:linear-gradient(135deg,#ff3b30,#ff9500,#00aaff);
+  border-bottom:6px solid #fff;
+}
+h1{margin:0;font-size:2rem;text-shadow:2px 2px 0 #0003}
+header p{margin:8px auto 0;max-width:650px;font-weight:700}
+main{max-width:1050px;margin:auto;padding:16px}
+.nav{
+  position:sticky;top:0;z-index:5;background:#ffffffd9;backdrop-filter:blur(10px);
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px;border-radius:0 0 18px 18px
+}
+button,.btn{
+  border:0;border-radius:14px;padding:12px 14px;font-weight:800;cursor:pointer;
+  background:var(--blue);color:white;box-shadow:0 5px 0 #0002
+}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 #0002}
+.card{
+  background:var(--card);border-radius:22px;padding:18px;margin:16px 0;
+  box-shadow:0 12px 30px #0002;border:4px solid #fff
+}
+.grid{display:grid;gap:14px}
+@media(min-width:800px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+input,select{
+  width:100%;padding:13px;border-radius:14px;border:2px solid #dbe2ff;font-size:1rem;margin:6px 0 12px
+}
+.player-card,.leader-row{
+  display:flex;gap:12px;align-items:center;background:var(--soft);padding:12px;border-radius:18px;margin:10px 0
+}
+.avatar{
+  width:58px;height:58px;border-radius:50%;object-fit:cover;background:#ddd;border:4px solid white
+}
+.rank{
+  min-width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:var(--yellow);font-size:1.2rem;font-weight:900
+}
+.champ{background:linear-gradient(135deg,#fff4a3,#ffd60a);border:4px solid #ffb700}
+.small{font-size:.9rem;opacity:.8}
+.caption{font-weight:800;color:#4b2bbf;margin-top:4px}
+.hidden{display:none}
+.result-row{
+  display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center;margin-bottom:8px
+}
+.danger{background:#ff3b30}
+.green{background:#35c759}
+.purple{background:#af52de}
+.tabs button{margin:4px}
+.badge{
+  display:inline-block;background:#000;color:white;border-radius:999px;padding:5px 10px;font-size:.8rem;margin:3px
+}
+.empty{text-align:center;padding:20px;font-weight:800;color:#566}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏁 Family Mario Kart Rankings 🏆</h1>
+  <p>Only family players count. NPCs can eat dust.</p>
+</header>
+
+<main>
+  <div class="nav">
+    <button onclick="jump('leaders')">🏆 Rankings</button>
+    <button onclick="jump('race')">🏁 Add Race</button>
+    <button onclick="jump('players')">👤 Players</button>
+    <button onclick="jump('history')">📜 History</button>
+  </div>
+
+  <section id="leaders" class="card">
+    <h2>Overall Champion</h2>
+    <div id="overallChampion"></div>
+    <div class="tabs">
+      <button onclick="renderLeaderboards('overall')">Overall</button>
+      <button onclick="renderLeaderboards('50cc')">50cc</button>
+      <button onclick="renderLeaderboards('100cc')">100cc</button>
+      <button onclick="renderLeaderboards('150cc')">150cc</button>
+    </div>
+    <div id="leaderboard"></div>
+  </section>
+
+  <section class="grid three">
+    <div class="card champ"><h3>50cc Known Leader</h3><h2>👑 Layla</h2></div>
+    <div class="card champ"><h3>100cc Known Champion</h3><h2>👑 Alex</h2></div>
+    <div class="card champ"><h3>150cc Known Champion</h3><h2>👑 Alex</h2></div>
+  </section>
+
+  <section id="race" class="card">
+    <h2>Add Race Result</h2>
+    <label>Race Type</label>
+    <select id="raceType">
+      <option>50cc</option><option>100cc</option><option>150cc</option>
+    </select>
+    <p class="small">Enter only the family player order. Ignore NPC positions completely.</p>
+    <div id="raceInputs"></div>
+    <button onclick="addRace()" class="green">Save Race Result</button>
+  </section>
+
+  <section id="players" class="card">
+    <h2>Add / Edit Players</h2>
+    <input id="playerName" placeholder="Player name, example: Layla" />
+    <input id="playerPhoto" type="file" accept="image/*" />
+    <button onclick="addPlayer()">Add Player</button>
+    <div id="playerList"></div>
+  </section>
+
+  <section id="history" class="card">
+    <h2>Race History</h2>
+    <div id="historyList"></div>
+    <button onclick="resetData()" class="danger">Reset All Data</button>
+  </section>
+</main>
+
+<script>
+const POINTS = [15,12,10,9,8,7,6,5,4,3,2,1];
+const TYPES = ["50cc","100cc","150cc"];
+const blankStats = () => ({points:0,wins:0,top3:0,races:0,placements:[]});
+
+let state = JSON.parse(localStorage.getItem("mkFamilyRankings")) || {
+  players:[
+    {id:crypto.randomUUID(),name:"Layla",photo:""},
+    {id:crypto.randomUUID(),name:"Alex",photo:""}
+  ],
+  races:[],
+  previousRanks:{}
+};
+
+function save(){localStorage.setItem("mkFamilyRankings",JSON.stringify(state))}
+function jump(id){document.getElementById(id).scrollIntoView({behavior:"smooth"})}
+
+function getStats(){
+  const stats = {};
+  state.players.forEach(p=>{
+    stats[p.id]={overall:blankStats()};
+    TYPES.forEach(t=>stats[p.id][t]=blankStats());
+  });
+
+  state.races.forEach(race=>{
+    race.results.forEach((id,index)=>{
+      if(!stats[id]) return;
+      const pts = POINTS[index] || 0;
+      [race.type,"overall"].forEach(type=>{
+        stats[id][type].points += pts;
+        stats[id][type].races += 1;
+        stats[id][type].placements.push(index+1);
+        if(index===0) stats[id][type].wins += 1;
+        if(index<3) stats[id][type].top3 += 1;
+      });
+    });
+  });
+  return stats;
+}
+
+function sortedPlayers(type="overall"){
+  const stats=getStats();
+  return [...state.players].sort((a,b)=>{
+    const A=stats[a.id][type], B=stats[b.id][type];
+    return B.points-A.points || B.wins-A.wins || B.top3-A.top3 || A.races-B.races;
+  });
+}
+
+function caption(player,type,rank,total){
+  const s=getStats()[player.id][type];
+  const old=state.previousRanks[player.id];
+  const avg=s.placements.length ? s.placements.reduce((a,b)=>a+b,0)/s.placements.length : 0;
+
+  if(!s.races) return "Waiting at the starting line with snacks.";
+  if(rank===1 && s.wins>=3) return "Needs a bigger trophy shelf. This is getting ridiculous.";
+  if(rank===1) return "Currently wearing the crown and driving like the controller owes them money.";
+  if(old && old-rank>=2) return "Huge comeback energy. Somebody check the tires!";
+  if(rank===2) return "Knocking on the champion’s door with a blue shell ready.";
+  if(s.top3>=s.races*.7) return "Always near the front like a professional troublemaker.";
+  if(avg>total-1 && s.races>1) return "Still warming up, but the comeback movie is loading.";
+  if(rank===total && s.races>0) return "Collecting character-building moments and possibly bananas.";
+  return "Dangerous enough that nobody should relax yet.";
+}
+
+function renderLeaderboards(type="overall"){
+  const stats=getStats();
+  const sorted=sortedPlayers(type);
+  const board=document.getElementById("leaderboard");
+
+  if(!state.players.length){
+    board.innerHTML='<div class="empty">Add players to start racing.</div>';
+    return;
+  }
+
+  board.innerHTML = `<h2>${type==="overall" ? "Overall Leaderboard" : type+" Leaderboard"}</h2>` +
+    sorted.map((p,i)=>{
+      const s=stats[p.id][type];
+      return `
+      <div class="leader-row ${i===0 && s.points>0 ? "champ":""}">
+        <div class="rank">${i===0 && s.points>0 ? "👑" : i+1}</div>
+        <img class="avatar" src="${p.photo || defaultAvatar(p.name)}">
+        <div style="flex:1">
+          <h3>${p.name}</h3>
+          <div>
+            <span class="badge">⭐ ${s.points} pts</span>
+            <span class="badge">🏆 ${s.wins} wins</span>
+            <span class="badge">🥉 ${s.top3} top 3</span>
+            <span class="badge">🏁 ${s.races} races</span>
+          </div>
+          <div class="caption">${caption(p,type,i+1,sorted.length)}</div>
+        </div>
+      </div>`;
+    }).join("");
+
+  renderOverallChampion();
+}
+
+function renderOverallChampion(){
+  const stats=getStats();
+  const top=sortedPlayers("overall")[0];
+  const box=document.getElementById("overallChampion");
+  if(!top || stats[top.id].overall.points===0){
+    box.innerHTML='<div class="empty">No overall champion yet. Add a race first.</div>';
+    return;
+  }
+  box.innerHTML=`
+    <div class="leader-row champ">
+      <div class="rank">👑</div>
+      <img class="avatar" src="${top.photo || defaultAvatar(top.name)}">
+      <div>
+        <h2>${top.name}</h2>
+        <p><b>${stats[top.id].overall.points} total points</b></p>
+        <div class="caption">${caption(top,"overall",1,state.players.length)}</div>
+      </div>
+    </div>`;
+}
+
+function renderPlayers(){
+  const list=document.getElementById("playerList");
+  list.innerHTML=state.players.map(p=>`
+    <div class="player-card">
+      <img class="avatar" src="${p.photo || defaultAvatar(p.name)}">
+      <div style="flex:1">
+        <input value="${p.name}" onchange="editPlayer('${p.id}',this.value)">
+      </div>
+      <button class="danger" onclick="removePlayer('${p.id}')">Remove</button>
+    </div>
+  `).join("");
+  renderRaceInputs();
+}
+
+function renderRaceInputs(){
+  const wrap=document.getElementById("raceInputs");
+  if(state.players.length<2){
+    wrap.innerHTML='<div class="empty">Add at least 2 players first.</div>';
+    return;
+  }
+  wrap.innerHTML = state.players.map((p,i)=>`
+    <div class="result-row">
+      <b>${placeName(i+1)}</b>
+      <select class="racePick">
+        <option value="">Choose player</option>
+        ${state.players.map(x=>`<option value="${x.id}">${x.name}</option>`).join("")}
+      </select>
+    </div>
+  `).join("");
+}
+
+function renderHistory(){
+  const box=document.getElementById("historyList");
+  if(!state.races.length){
+    box.innerHTML='<div class="empty">No races saved yet.</div>';
+    return;
+  }
+  box.innerHTML=[...state.races].reverse().map(r=>{
+    const names=r.results.map((id,i)=>{
+      const p=state.players.find(x=>x.id===id);
+      return `${placeName(i+1)} ${p?p.name:"Deleted Player"} +${POINTS[i]||0}`;
+    }).join("<br>");
+    return `<div class="card"><b>${r.type}</b><p>${names}</p><p class="small">${new Date(r.date).toLocaleString()}</p></div>`;
+  }).join("");
+}
+
+function addRace(){
+  const type=document.getElementById("raceType").value;
+  const picks=[...document.querySelectorAll(".racePick")].map(s=>s.value).filter(Boolean);
+  const unique=[...new Set(picks)];
+
+  if(unique.length<2) return alert("Pick at least 2 different family players.");
+  if(unique.length!==picks.length) return alert("Each player can only be picked once.");
+
+  const before=sortedPlayers("overall");
+  before.forEach((p,i)=>state.previousRanks[p.id]=i+1);
+
+  state.races.push({type,results:unique,date:new Date().toISOString()});
+  save();renderAll();
+}
+
+function addPlayer(){
+  const name=document.getElementById("playerName").value.trim();
+  const file=document.getElementById("playerPhoto").files[0];
+  if(!name) return alert("Enter a player name.");
+
+  const finish=(photo="")=>{
+    state.players.push({id:crypto.randomUUID(),name,photo});
+    document.getElementById("playerName").value="";
+    document.getElementById("playerPhoto").value="";
+    save();renderAll();
+  };
+
+  if(file){
+    const reader=new FileReader();
+    reader.onload=e=>finish(e.target.result);
+    reader.readAsDataURL(file);
+  } else finish();
+}
+
+function editPlayer(id,name){
+  const p=state.players.find(x=>x.id===id);
+  if(p) p.name=name.trim() || p.name;
+  save();renderAll();
+}
+
+function removePlayer(id){
+  if(!confirm("Remove this player? Their old race history will no longer count.")) return;
+  state.players=state.players.filter(p=>p.id!==id);
+  save();renderAll();
+}
+
+function resetData(){
+  if(confirm("Reset everything? This cannot be undone.")){
+    localStorage.removeItem("mkFamilyRankings");
+    location.reload();
+  }
+}
+
+function placeName(n){
+  if(n===1)return"1st";
+  if(n===2)return"2nd";
+  if(n===3)return"3rd";
+  return n+"th";
+}
+
+function defaultAvatar(name){
+  const letter=encodeURIComponent((name||"?")[0].toUpperCase());
+  return `data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'>
+  <rect width='120' height='120' rx='60' fill='%23ffd60a'/>
+  <text x='50%' y='56%' text-anchor='middle' font-size='56' font-family='Arial' font-weight='900' fill='%23172033'>${letter}</text>
+  </svg>`;
+}
+
+function renderAll(){
+  renderPlayers();
+  renderLeaderboards("overall");
+  renderHistory();
+}
+renderAll();
+</script>
+</body>
+</html>
