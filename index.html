@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Knox Kart Kingdom</title>
+<style>
+:root{
+  --red:#ff3b30;--orange:#ff9500;--yellow:#ffd60a;--green:#34c759;
+  --blue:#00aaff;--purple:#af52de;--pink:#ff5ec4;--dark:#171b35;
+  --card:#ffffff;--soft:#f5f7ff;--shadow:0 14px 35px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--dark);
+  background:
+    radial-gradient(circle at 10% 10%,#fff176 0 7%,transparent 8%),
+    radial-gradient(circle at 90% 20%,#ff80ab 0 8%,transparent 9%),
+    linear-gradient(135deg,#6ee7ff,#ffd166,#ff9ff3);
+  min-height:100vh;
+}
+header{
+  text-align:center;
+  padding:30px 16px 90px;
+  color:white;
+  background:linear-gradient(135deg,#ff3131,#ff9f1c,#00b4ff,#7b2cff);
+  position:relative;
+  overflow:hidden;
+}
+header:before{
+  content:"🏁 🏎️ 💨 🏆 ⭐ 🍌 ⚡";
+  position:absolute;
+  bottom:18px;
+  left:0;
+  width:200%;
+  font-size:2rem;
+  animation:drive 12s linear infinite;
+  opacity:.9;
+}
+@keyframes drive{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+h1{margin:0;font-size:2.15rem;text-shadow:3px 3px 0 rgba(0,0,0,.25)}
+header p{font-weight:900;margin:10px auto 0;max-width:700px}
+main{max-width:1100px;margin:-55px auto 40px;padding:14px}
+.nav{
+  position:sticky;top:0;z-index:20;
+  display:grid;grid-template-columns:repeat(5,1fr);gap:7px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(10px);
+  padding:10px;border-radius:22px;box-shadow:var(--shadow);
+}
+button{
+  border:0;border-radius:15px;padding:12px 10px;font-weight:950;cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:white;box-shadow:0 5px 0 rgba(0,0,0,.2);
+}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+button.danger{background:linear-gradient(135deg,#ff3b30,#b00020)}
+button.green{background:linear-gradient(135deg,#34c759,#00a86b)}
+button.yellow{background:linear-gradient(135deg,#ffd60a,#ff9500);color:#2b2200}
+.card{
+  background:rgba(255,255,255,.96);
+  border:4px solid white;
+  border-radius:25px;
+  padding:18px;
+  margin:16px 0;
+  box-shadow:var(--shadow);
+}
+.card h2,.card h3{margin-top:0}
+.grid{display:grid;gap:14px}
+@media(min-width:850px){
+  .grid.two{grid-template-columns:1fr 1fr}
+  .grid.three{grid-template-columns:repeat(3,1fr)}
+}
+input,select{
+  width:100%;
+  border:2px solid #dbe2ff;
+  border-radius:15px;
+  padding:13px;
+  font-size:1rem;
+  margin:6px 0 12px;
+  background:white;
+}
+.leader-row,.player-card,.race-card{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  background:var(--soft);
+  padding:13px;
+  border-radius:20px;
+  margin:10px 0;
+  border:2px solid #fff;
+}
+.avatar{
+  width:64px;height:64px;border-radius:50%;object-fit:cover;
+  border:4px solid white;background:#eee;box-shadow:0 6px 12px #0002;
+}
+.rank{
+  min-width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--yellow);
+  font-size:1.25rem;
+  font-weight:1000;
+  box-shadow:inset 0 -4px #0001;
+}
+.champ{
+  background:linear-gradient(135deg,#fff7ae,#ffd60a,#ffb703);
+  border-color:#fff4a3;
+}
+.badge{
+  display:inline-block;
+  margin:3px;
+  padding:5px 10px;
+  background:#111827;
+  color:white;
+  border-radius:999px;
+  font-size:.82rem;
+  font-weight:850;
+}
+.caption{font-weight:900;color:#4b2bbf;margin-top:6px}
+.small{font-size:.9rem;opacity:.78}
+.tabs{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+.result-slot{
+  background:#f8f9ff;
+  padding:12px;
+  border-radius:18px;
+  border:2px dashed #b8c4ff;
+  margin:10px 0;
+}
+.notice{
+  background:#e9f8ff;
+  border-left:7px solid var(--blue);
+  padding:12px;
+  border-radius:14px;
+  font-weight:750;
+}
+.empty{text-align:center;padding:22px;font-weight:900;color:#667}
+.race-card{align-items:flex-start;justify-content:space-between}
+.race-card ul{margin:8px 0 0;padding-left:20px}
+.kart-strip{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+}
+.kart{
+  min-height:70px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#fff,#dff7ff);
+  display:grid;
+  place-items:center;
+  font-size:2rem;
+  animation:bounce 2s ease-in-out infinite;
+}
+.kart:nth-child(2){animation-delay:.2s}
+.kart:nth-child(3){animation-delay:.4s}
+.kart:nth-child(4){animation-delay:.6s}
+@keyframes bounce{50%{transform:translateY(-5px)}}
+@media(max-width:620px){
+  .nav{grid-template-columns:repeat(3,1fr);font-size:.78rem}
+  h1{font-size:1.7rem}
+  .leader-row,.player-card{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏁 Knox Kart Kingdom 🏆</h1>
+  <p>Family racers only. NPCs do not count. Bragging rights absolutely count.</p>
+</header>
+
+<main>
+  <nav class="nav">
+    <button onclick="jump('leaders')">🏆 Boards</button>
+    <button onclick="jump('race')">🏁 Race</button>
+    <button onclick="jump('daily')">☀️ Today</button>
+    <button onclick="jump('session')">🎮 Session</button>
+    <button onclick="jump('players')">👤 Players</button>
+  </nav>
+
+  <section class="card">
+    <div class="kart-strip">
+      <div class="kart">🏎️</div><div class="kart">💨</div><div class="kart">🍌</div><div class="kart">🏆</div>
+    </div>
+  </section>
+
+  <section id="leaders" class="card">
+    <h2>👑 All-Time Champion</h2>
+    <div id="overallChampion"></div>
+    <div class="tabs">
+      <button onclick="renderLeaderboard('overall','All-Time Leaderboard')">Overall</button>
+      <button onclick="renderLeaderboard('50cc','50cc Leaderboard')">50cc</button>
+      <button onclick="renderLeaderboard('100cc','100cc Leaderboard')">100cc</button>
+      <button onclick="renderLeaderboard('150cc','150cc Leaderboard')">150cc</button>
+    </div>
+    <div id="leaderboard"></div>
+  </section>
+
+  <section class="grid three">
+    <div class="card champ"><h3>50cc Known Leader</h3><h2>👑 Layla</h2></div>
+    <div class="card champ"><h3>100cc Champion</h3><h2>👑 Alex</h2></div>
+    <div class="card champ"><h3>150cc Champion</h3><h2>👑 Alex</h2></div>
+  </section>
+
+  <section id="daily" class="card">
+    <h2>☀️ Today’s Rankings</h2>
+    <p class="small">Only races entered today count here.</p>
+    <div id="dailyBoard"></div>
+  </section>
+
+  <section id="session" class="card">
+    <h2>🎮 Current Session Rankings</h2>
+    <p class="small">Only races from this current gaming session count here.</p>
+    <button class="yellow" onclick="resetSession()">Reset Current Session</button>
+    <div id="sessionBoard"></div>
+  </section>
+
+  <section id="race" class="card">
+    <h2>🏁 Add Race Result</h2>
+    <div class="notice">
+      Pick up to 4 real family players in their family-only finishing order. NPC spots do not matter.
+    </div>
+
+    <label>Race Type</label>
+    <select id="raceType">
+      <option>50cc</option>
+      <option>100cc</option>
+      <option>150cc</option>
+    </select>
+
+    <div id="raceInputs"></div>
+    <button class="green" onclick="addRace()">Save Race Result</button>
+  </section>
+
+  <section id="players" class="card">
+    <h2>👤 Player Profiles</h2>
+    <input id="playerName" placeholder="Player name" />
+    <input id="playerPhoto" type="file" accept="image/*" />
+    <button onclick="addPlayer()">Add Player</button>
+    <div id="playerList"></div>
+  </section>
+
+  <section id="history" class="card">
+    <h2>📜 Race History Log</h2>
+    <p class="small">Delete fake or incorrect races here. Points recalculate automatically.</p>
+    <div id="historyList"></div>
+  </section>
+
+  <section class="card">
+    <h2>⚠️ Reset Everything</h2>
+    <p class="small">This deletes players, photos, all races, and all saved rankings.</p>
+    <button class="danger" onclick="resetAll()">Reset All Data</button>
+  </section>
+</main>
+
+<script>
+const POINTS = [15,12,10,9];
+const TYPES = ["50cc","100cc","150cc"];
+const STORAGE_KEY = "knoxKartKingdomData";
+
+let sessionId = sessionStorage.getItem("knoxKartSessionId");
+if(!sessionId){
+  sessionId = crypto.randomUUID();
+  sessionStorage.setItem("knoxKartSessionId", sessionId);
+}
+
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+  players:[
+    {id:crypto.randomUUID(),name:"Layla",photo:""},
+    {id:crypto.randomUUID(),name:"Alex",photo:""}
+  ],
+  races:[],
+  previousRanks:{}
+};
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function esc(text){
+  return String(text || "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function jump(id){
+  document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+function blankStats(){
+  return {points:0,wins:0,top3:0,races:0,placements:[]};
+}
+
+function sameLocalDay(dateString){
+  const a = new Date(dateString);
+  const b = new Date();
+  return a.getFullYear()===b.getFullYear() &&
+         a.getMonth()===b.getMonth() &&
+         a.getDate()===b.getDate();
+}
+
+function getStats(filter="all", typeFilter="overall"){
+  const stats = {};
+  state.players.forEach(p => stats[p.id] = blankStats());
+
+  state.races.forEach(race => {
+    if(filter==="today" && !sameLocalDay(race.date)) return;
+    if(filter==="session" && race.sessionId !== sessionId) return;
+    if(typeFilter !== "overall" && race.type !== typeFilter) return;
+
+    race.results.forEach((id,index) => {
+      if(!stats[id]) return;
+      const pts = POINTS[index] || 0;
+      stats[id].points += pts;
+      stats[id].races += 1;
+      stats[id].placements.push(index+1);
+      if(index === 0) stats[id].wins += 1;
+      if(index < 3) stats[id].top3 += 1;
+    });
+  });
+
+  return stats;
+}
+
+function sortedPlayers(filter="all", type="overall"){
+  const stats = getStats(filter,type);
+  return [...state.players].sort((a,b)=>{
+    const A = stats[a.id], B = stats[b.id];
+    return B.points-A.points || B.wins-A.wins || B.top3-A.top3 || A.races-B.races;
+  });
+}
+
+function caption(player, filter, type, rank, total){
+  const s = getStats(filter,type)[player.id];
+  const old = state.previousRanks[player.id];
+  const avg = s.placements.length ? s.placements.reduce((a,b)=>a+b,0)/s.placements.length : 0;
+
+  if(!s.races) return "Parked in the garage, waiting for their big moment.";
+  if(rank===1 && s.wins>=4) return "Needs a bigger trophy shelf. This is getting silly.";
+  if(rank===1) return "Wearing the crown and driving like the snacks are on the line.";
+  if(old && old-rank>=2) return "Big comeback alert! Somebody check for hidden rocket fuel.";
+  if(rank===2) return "Knocking on the champion’s door with a blue shell in spirit.";
+  if(s.top3 >= s.races*.75) return "Always near the front, causing family leaderboard stress.";
+  if(avg > total-1 && s.races>1) return "Still warming up, but the comeback movie is loading.";
+  if(rank===total) return "Collecting character-building moments and maybe a few bananas.";
+  return "Dangerous enough that nobody should get comfortable.";
+}
+
+function renderChampion(){
+  const stats = getStats("all","overall");
+  const top = sortedPlayers("all","overall")[0];
+  const box = document.getElementById("overallChampion");
+
+  if(!top || stats[top.id].points === 0){
+    box.innerHTML = `<div class="empty">No champion yet. Add a race first.</div>`;
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="leader-row champ">
+      <div class="rank">👑</div>
+      <img class="avatar" src="${top.photo || defaultAvatar(top.name)}" alt="">
+      <div>
+        <h2>${esc(top.name)}</h2>
+        <p><b>${stats[top.id].points} total points</b></p>
+        <div class="caption">${caption(top,"all","overall",1,state.players.length)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function leaderboardHTML(filter,type,title){
+  const stats = getStats(filter,type);
+  const sorted = sortedPlayers(filter,type);
+
+  if(!state.players.length) return `<div class="empty">Add players to start racing.</div>`;
+
+  return `<h2>${title}</h2>` + sorted.map((p,i)=>{
+    const s = stats[p.id];
+    return `
+      <div class="leader-row ${i===0 && s.points>0 ? "champ" : ""}">
+        <div class="rank">${i===0 && s.points>0 ? "👑" : i+1}</div>
+        <img class="avatar" src="${p.photo || defaultAvatar(p.name)}" alt="">
+        <div style="flex:1">
+          <h3>${esc(p.name)}</h3>
+          <span class="badge">⭐ ${s.points} pts</span>
+          <span class="badge">🏆 ${s.wins} wins</span>
+          <span class="badge">🥉 ${s.top3} top 3</span>
+          <span class="badge">🏁 ${s.races} races</span>
+          <div class="caption">${caption(p,filter,type,i+1,sorted.length)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function renderLeaderboard(type="overall", title="All-Time Leaderboard"){
+  document.getElementById("leaderboard").innerHTML = leaderboardHTML("all",type,title);
+  renderChampion();
+}
+
+function renderDailyAndSession(){
+  document.getElementById("dailyBoard").innerHTML = leaderboardHTML("today","overall","Today’s Champion Board");
+  document.getElementById("sessionBoard").innerHTML = leaderboardHTML("session","overall","Current Session Board");
+}
+
+function renderRaceInputs(){
+  const box = document.getElementById("raceInputs");
+
+  if(state.players.length < 2){
+    box.innerHTML = `<div class="empty">Add at least 2 players first.</div>`;
+    return;
+  }
+
+  box.innerHTML = [1,2,3,4].map(n => `
+    <div class="result-slot">
+      <label><b>${placeName(n)} among family players</b></label>
+      <select class="racePick">
+        <option value="">No racer / empty slot</option>
+        ${state.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join("")}
+      </select>
+    </div>
+  `).join("") + `<p class="small">Only selected players receive points. Everyone else gets 0 for this race.</p>`;
+}
+
+function addRace(){
+  const type = document.getElementById("raceType").value;
+  const picks = [...document.querySelectorAll(".racePick")]
+    .map(s => s.value)
+    .filter(Boolean);
+
+  const unique = [...new Set(picks)];
+
+  if(unique.length < 2) return alert("Pick at least 2 family players.");
+  if(unique.length > 4) return alert("Only 4 real players can race at one time.");
+  if(unique.length !== picks.length) return alert("A player can only appear once in the same race.");
+
+  sortedPlayers("all","overall").forEach((p,i)=>state.previousRanks[p.id]=i+1);
+
+  state.races.push({
+    id:crypto.randomUUID(),
+    type,
+    results:unique,
+    date:new Date().toISOString(),
+    sessionId
+  });
+
+  save();
+  renderAll();
+}
+
+function renderPlayers(){
+  const list = document.getElementById("playerList");
+
+  if(!state.players.length){
+    list.innerHTML = `<div class="empty">No players yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = state.players.map(p => `
+    <div class="player-card">
+      <img class="avatar" src="${p.photo || defaultAvatar(p.name)}" alt="">
+      <div style="flex:1">
+        <label>Player Name</label>
+        <input value="${esc(p.name)}" onchange="editPlayer('${p.id}',this.value)">
+        <label>Update Photo</label>
+        <input type="file" accept="image/*" onchange="updatePlayerPhoto('${p.id}',this.files[0])">
+      </div>
+      <button class="danger" onclick="removePlayer('${p.id}')">Remove</button>
+    </div>
+  `).join("");
+}
+
+function addPlayer(){
+  const name = document.getElementById("playerName").value.trim();
+  const file = document.getElementById("playerPhoto").files[0];
+
+  if(!name) return alert("Enter a player name.");
+
+  const finish = photo => {
+    state.players.push({id:crypto.randomUUID(),name,photo:photo || ""});
+    document.getElementById("playerName").value = "";
+    document.getElementById("playerPhoto").value = "";
+    save();
+    renderAll();
+  };
+
+  if(file){
+    const reader = new FileReader();
+    reader.onload = e => finish(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    finish("");
+  }
+}
+
+function editPlayer(id,name){
+  const p = state.players.find(x=>x.id===id);
+  if(!p) return;
+  p.name = name.trim() || p.name;
+  save();
+  renderAll();
+}
+
+function updatePlayerPhoto(id,file){
+  if(!file) return;
+  const p = state.players.find(x=>x.id===id);
+  if(!p) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    p.photo = e.target.result;
+    save();
+    renderAll();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePlayer(id){
+  if(!confirm("Remove this player? Their past race points will no longer count on the leaderboard.")) return;
+  state.players = state.players.filter(p=>p.id!==id);
+  save();
+  renderAll();
+}
+
+function renderHistory(){
+  const box = document.getElementById("historyList");
+
+  if(!state.races.length){
+    box.innerHTML = `<div class="empty">No races saved yet.</div>`;
+    return;
+  }
+
+  box.innerHTML = [...state.races].reverse().map(race => {
+    const racers = race.results.map((id,i)=>{
+      const p = state.players.find(x=>x.id===id);
+      return `<li><b>${placeName(i+1)}</b> — ${esc(p ? p.name : "Deleted Player")} earned <b>${POINTS[i] || 0}</b> points</li>`;
+    }).join("");
+
+    const didNotRace = state.players
+      .filter(p=>!race.results.includes(p.id))
+      .map(p=>esc(p.name))
+      .join(", ") || "Nobody";
+
+    return `
+      <div class="race-card">
+        <div>
+          <h3>🏁 ${race.type} Race</h3>
+          <p class="small">${new Date(race.date).toLocaleString()}</p>
+          <p><b>Players who raced:</b></p>
+          <ul>${racers}</ul>
+          <p class="small"><b>Did not race:</b> ${didNotRace} — 0 points</p>
+        </div>
+        <button class="danger" onclick="deleteRace('${race.id}')">Delete Race</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function deleteRace(id){
+  if(!confirm("Delete this race? The leaderboards will recalculate automatically.")) return;
+  state.races = state.races.filter(r=>r.id!==id);
+  save();
+  renderAll();
+}
+
+function resetSession(){
+  if(!confirm("Reset only the current session leaderboard? All-time race history will stay saved.")) return;
+  sessionId = crypto.randomUUID();
+  sessionStorage.setItem("knoxKartSessionId", sessionId);
+  renderAll();
+}
+
+function resetAll(){
+  if(!confirm("Reset EVERYTHING? This deletes all players, photos, races, and rankings.")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem("knoxKartSessionId");
+  location.reload();
+}
+
+function placeName(n){
+  if(n===1) return "1st";
+  if(n===2) return "2nd";
+  if(n===3) return "3rd";
+  return n + "th";
+}
+
+function defaultAvatar(name){
+  const letter = encodeURIComponent((name || "?")[0].toUpperCase());
+  return `data:image/svg+xml;utf8,
+  <svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'>
+    <defs>
+      <linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+        <stop stop-color='%23ffd60a'/>
+        <stop offset='1' stop-color='%2300aaff'/>
+      </linearGradient>
+    </defs>
+    <rect width='140' height='140' rx='70' fill='url(%23g)'/>
+    <circle cx='105' cy='35' r='18' fill='%23ffffff88'/>
+    <text x='50%' y='58%' text-anchor='middle' font-size='64' font-family='Arial' font-weight='900' fill='%23171b35'>${letter}</text>
+  </svg>`;
+}
+
+function renderAll(){
+  renderPlayers();
+  renderRaceInputs();
+  renderLeaderboard("overall","All-Time Leaderboard");
+  renderDailyAndSession();
+  renderHistory();
+}
+
+renderAll();
+</script>
+</body>
+</html>
